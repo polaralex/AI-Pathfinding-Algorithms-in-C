@@ -8,7 +8,7 @@ typedef struct coordinates {
 } position_xy;
 
 typedef struct positionList {
-	struct coordinates position;
+	position_xy position;
 	struct positionList * previous;
 	struct positionList * next;
 } list;
@@ -23,13 +23,58 @@ int main() {
 	// Current-run values:
 	int xstart = 1;
 	int ystart = 2;
+	int mapHeight = 100;
+	int mapWidth = 100;
 
 	// Map:
-	int map[100][100];
-	int map_visited[100][100];
+	int map[mapHeight][mapWidth];
+	int map_visited[mapHeight][mapWidth];
+
+	int i;
+	int y;
+
+	// Initialize "visited" array:
+	for (i=0; i<mapWidth; i++) {
+		for (y=0; y<mapHeight; y++) {
+			map_visited[i][y]=0;
+		}
+	}
 
 	position_xy * start = newPosition(x, y);
 	addToFrontier(start);
+
+	while(frontier_head!=NULL){
+		list * current = frontier_head;
+
+		checkNeighbors(current);
+	}
+}
+
+void checkNeighbors(list * current){
+
+	if (map_visited[current->position->x+1][current->position->y] != 1) {
+
+		addToFrontier(new_position(current->position->x+1, current->position->y));
+		map_visited[current->position->x+1][current->position->y] = 1
+	}
+
+	if (map_visited[current->position->x-1][current->position->y] != 1) {
+
+		addToFrontier(new_position(current->position->x-1, current->position->y));
+		map_visited[current->position->x-1][current->position->y] = 1;
+	}
+
+	if (map_visited[current->position->x][current->position->y+1] != 1) {
+
+		addToFrontier(new_position(current->position->x, current->position->y+1));
+		map_visited[current->position->x][current->position->y+1] = 1
+	}
+
+	if (map_visited[current->position->x][current->position->y-1] != 1) {
+
+		addToFrontier(new_position(current->position->x, current->position->y-1));
+		map_visited[current->position->x][current->position->y-1] = 1
+	}
 }
 
 void addToFrontier(position_xy * input) {
