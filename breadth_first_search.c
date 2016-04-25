@@ -17,24 +17,21 @@ void checkNeighbors(list * current, int **map_visited);
 void addToFrontier(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
+list * getFromQueue(list * node);
 
 list * frontier_head;
 list * visited;
 
 int main() {
 
-	printf("Debug 1.\n");
 	// Current-run values:
-	int xstart = 1;
-	int ystart = 2;
+	int xstart = 9;
+	int ystart = 9;
 
 	int i;
 	int y;
 
-	printf("Debug 2.\n");
 	visited = malloc(sizeof(list));
-
-	printf("Debug 3.\n");
 
 	// Map initialization:
 	int mapHeight = 15;
@@ -56,8 +53,6 @@ int main() {
 		map_visited[i] = (int *) malloc(mapHeight*sizeof(int));
 	}
 
-	printf("Debug 4.\n");
-
 	// Initialize "visited" array:
 	for (i=0; i<mapWidth; i++) {
 		for (y=0; y<mapHeight; y++) {
@@ -65,26 +60,25 @@ int main() {
 		}
 	}
 
-	printf("Debug 5.\n");
 	position_xy * start = new_position(xstart, ystart);
+	map_visited[xstart][ystart] = 1;
 	addToFrontier(start);
 
-	printf("Debug 6.\n");
 	while (frontier_head != NULL){
 
 		list * current = frontier_head;
-		printf("Debug 7.\n");
+
 		checkNeighbors(current, map_visited);
-		printf("Debug 8.\n");
 
 		frontier_head = frontier_head->next;
-		printf("Debug 9.\n");
 
 		printCurrentMap(map_visited, mapHeight, mapWidth);
 	}
 }
 
 void checkNeighbors(list * current, int **map_visited){
+
+	getFromQueue(current);
 
 	if (map_visited[(current->position->x)+1][current->position->y] != 1) {
 
@@ -109,6 +103,7 @@ void checkNeighbors(list * current, int **map_visited){
 		addToFrontier(new_position(current->position->x, (current->position->y)-1));
 		map_visited[current->position->x][(current->position->y)-1] = 1;
 	}
+
 }
 
 void addToFrontier(position_xy * input) {
@@ -120,12 +115,31 @@ void addToFrontier(position_xy * input) {
 
 		frontier_head->position = input;
 	} else {
-		list * new_node = malloc(sizeof(list));
-		new_node->previous = frontier_head;
+
+		list * temp_node;
+		temp_node = frontier_head;
+
+		while(temp_node->next != NULL) {
+			temp_node = temp_node->next;
+		}
+
+		list * new_node = malloc(sizeof(list)); 
+		temp_node->next = new_node;
+		new_node->previous = temp_node;
+
 		new_node->position = input;
 		new_node->next = NULL;
-		frontier_head = new_node;
+
 	}
+}
+
+list * getFromQueue(list * node) {
+
+	list * temp;
+	temp = node;
+
+	node = node->next;
+	return(temp);
 }
 
 position_xy * new_position(int x, int y){
@@ -143,7 +157,11 @@ void printCurrentMap(int **
 
 	for(i=0; i<x; i++) {
 		for(z=0; z<y; z++) {
-			printf("[%d]", map[i][z]);
+			if (map[i][z] == 0){
+				printf("[ ]");
+			} else {
+				printf("[X]");
+			}
 		}
 		printf("\n");
 	}
