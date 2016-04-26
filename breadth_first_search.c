@@ -125,10 +125,13 @@ void checkPosition(list * current, int **map_visited, int addX, int addY) {
 
 	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == 0) {
 
+		// Add the new position to the Queue:
 		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
 		addToQueue(nextPosition);
 
-		map_visited[(current->position->x)+addX][(current->position->y)+addY] = 1;
+		// Mark the position as Visited (along with the cost of travelling there):
+		int current_cost = map_visited[current->position->x][current->position->y];
+		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + 1;
 	}
 }
 
