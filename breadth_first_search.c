@@ -19,18 +19,22 @@ int DOWN = 2;
 int LEFT = 3;
 int RIGHT = 4;
 
+int STARTING_POSITION = -1;
+int OBSTACLE = -2;
+
 void checkNeighbors(list * current, int **map_visited);
 void addToQueue(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
 int positionsAreValid(list * current, int direction);
+void checkPosition(list * current, int **map_visited, int addX, int addY);
 void printFrontierQueue(list * node);
 
 list * queue_head;
 
 // Map initialization:
-int mapHeight = 5;
-int mapWidth = 5;
+int mapHeight = 15;
+int mapWidth = 15;
 
 int main() {
 
@@ -58,9 +62,19 @@ int main() {
 		}
 	}
 
+	// Set some obstacles:
+	map_visited[10][0] = OBSTACLE;
+	map_visited[10][1] = OBSTACLE;
+	map_visited[10][2] = OBSTACLE;
+	map_visited[10][3] = OBSTACLE;
+	map_visited[10][4] = OBSTACLE;
+	map_visited[10][5] = OBSTACLE;
+	map_visited[10][8] = OBSTACLE;
+	map_visited[10][9] = OBSTACLE;
+
 	// Beginning of the sequence:
 	position_xy * start = new_position(xstart, ystart);
-	map_visited[xstart][ystart] = 1;
+	map_visited[xstart][ystart] = STARTING_POSITION;
 	addToQueue(start);
 
 	// The main loop of the Algorithm:
@@ -90,33 +104,32 @@ int main() {
 
 void checkNeighbors(list * current, int **map_visited){
 
-		if (positionsAreValid(current, RIGHT) == 1 && (map_visited[current->position->x][(current->position->y)+1] == 0)) {
-
-			position_xy * nextPosition = new_position(current->position->x, (current->position->y)+1);
-			addToQueue(nextPosition);
-			map_visited[current->position->x][(current->position->y)+1] = 1;
+		if (positionsAreValid(current, RIGHT) == 1){
+			checkPosition(current, map_visited, 0, 1);
 		}
 
-		if (positionsAreValid(current, LEFT) == 1 && (map_visited[current->position->x][(current->position->y)-1] == 0)) {
-
-			position_xy * nextPosition = new_position(current->position->x, (current->position->y)-1);
-			addToQueue(nextPosition);
-			map_visited[current->position->x][(current->position->y)-1] = 1;
+		if (positionsAreValid(current, LEFT) == 1){
+			checkPosition(current, map_visited, 0, -1);
 		}
 
-		if (positionsAreValid(current, UP) == 1 && (map_visited[(current->position->x)-1][current->position->y] == 0)) {
-
-			position_xy * nextPosition = new_position((current->position->x)-1, current->position->y);
-			addToQueue(nextPosition);
-			map_visited[(current->position->x)-1][current->position->y] = 1;
+		if (positionsAreValid(current, UP) == 1){
+			checkPosition(current, map_visited, -1, 0);
 		}
 
-		if (positionsAreValid(current, DOWN) == 1 && (map_visited[(current->position->x)+1][current->position->y] == 0)) {
-
-			position_xy * nextPosition = new_position((current->position->x)+1, current->position->y);
-			addToQueue(nextPosition);
-			map_visited[(current->position->x)+1][current->position->y] = 1;
+		if (positionsAreValid(current, DOWN) == 1){
+			checkPosition(current, map_visited, 1, 0);
 		}
+}
+
+void checkPosition(list * current, int **map_visited, int addX, int addY) {
+
+	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == 0) {
+
+		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
+		addToQueue(nextPosition);
+
+		map_visited[(current->position->x)+addX][(current->position->y)+addY] = 1;
+	}
 }
 
 int positionsAreValid(list * current, int direction) {
@@ -215,8 +228,12 @@ void printCurrentMap(int ** map, int width, int height) {
 
 			if (map[i][z] == 0){
 				printf("[ ]");
+			} else if (map[i][z] == OBSTACLE) {
+				printf("[-]");
+			} else if (map[i][z] == STARTING_POSITION) {
+				printf("[s]");
 			} else {
-				printf("[X]");
+				printf("[%d]", map[i][z]);
 			}
 		}
 		printf("\n");
