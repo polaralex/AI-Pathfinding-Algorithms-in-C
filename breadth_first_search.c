@@ -19,18 +19,25 @@ int DOWN = 2;
 int LEFT = 3;
 int RIGHT = 4;
 
-int STARTING_POSITION = -1;
+int STARTING_POSITION = 0;
+int NOT_VISITED = -1;
 int OBSTACLE = -2;
+int BEST_PATH = -3;
 
 void checkNeighbors(list * current, int **map_visited);
 void addToQueue(position_xy * input);
+void addToBestPathQueue(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
 int positionsAreValid(list * current, int direction);
 void checkPosition(list * current, int **map_visited, int addX, int addY);
+void findShortestPath( int **map, int **best_route_map, int target_x, int target_y);
 void printFrontierQueue(list * node);
+void printBestPathQueue(list * node);
+int isValid(int input);
 
 list * queue_head;
+list * shortestPath;
 
 // Map initialization:
 int mapHeight = 15;
@@ -43,6 +50,8 @@ int main() {
 	int userInputYstart = 3;
 	int xstart = userInputXstart-1;
 	int ystart = userInputYstart-1;
+	int userInputTargetX = 13;
+	int userInputTargetY = 7;
 
 	int i;
 	int y;
@@ -55,10 +64,17 @@ int main() {
 		map_visited[i] = (int *) malloc(mapWidth*sizeof(int));
 	}
 
+	int **best_route_map;
+	best_route_map = (int **) malloc(mapHeight*sizeof(int *));
+
+	for(i=0; i<mapWidth; i++){
+		best_route_map[i] = (int *) malloc(mapWidth*sizeof(int));
+	}
+
 	// Initialize "visited" array:
 	for (i=0; i<mapHeight; i++) {
 		for (y=0; y<mapWidth; y++) {
-			map_visited[i][y]=0;
+			map_visited[i][y]= NOT_VISITED;
 		}
 	}
 
@@ -69,6 +85,8 @@ int main() {
 	map_visited[10][3] = OBSTACLE;
 	map_visited[10][4] = OBSTACLE;
 	map_visited[10][5] = OBSTACLE;
+	map_visited[11][6] = OBSTACLE;
+	map_visited[11][7] = OBSTACLE;
 	map_visited[10][8] = OBSTACLE;
 	map_visited[10][9] = OBSTACLE;
 
@@ -100,6 +118,9 @@ int main() {
 			printf("-> The Queue is EMPTY.\n\n");
 		}
 	}
+
+	// Find the Shortest Path:
+	findShortestPath(map_visited, best_route_map, userInputTargetX, userInputTargetY);
 }
 
 void checkNeighbors(list * current, int **map_visited){
@@ -123,7 +144,7 @@ void checkNeighbors(list * current, int **map_visited){
 
 void checkPosition(list * current, int **map_visited, int addX, int addY) {
 
-	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == 0) {
+	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
 
 		// Add the new position to the Queue:
 		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
@@ -214,12 +235,126 @@ void addToQueue(position_xy * input) {
 	}
 }
 
+void addToBestPathQueue(position_xy * input) {
+	
+	if (shortestPath == NULL) {
+
+		shortestPath = malloc(sizeof(list));
+		shortestPath->previous = NULL;
+		shortestPath->next = NULL;
+		shortestPath->position = input;
+
+	} else {
+
+		list * temp_node;
+		temp_node = shortestPath;
+
+		while(temp_node->next != NULL) {
+			temp_node = temp_node->next;
+		}
+
+		list * new_node = malloc(sizeof(list));
+
+		temp_node->next = new_node;
+
+		new_node->previous = temp_node;
+		new_node->position = input;
+		new_node->next = NULL;
+	}
+}
+
 position_xy * new_position(int x, int y){
 
 	position_xy * new_position = malloc(sizeof(position_xy));
 	new_position->x = x;
 	new_position->y = y;
 	return (new_position);
+}
+
+void findShortestPath( int **map, int **best_route_map, int target_x, int target_y ) {
+
+	int x = target_x;
+	int y = target_y;
+	int i, z;
+
+	// Initialize the base of the 'best-route map' array:
+	for (i=0; i<mapHeight; i++) {
+		for (z=0; z<mapWidth; z++) {
+			best_route_map[i][z] = map[i][z];
+		}
+	}
+
+	while( map[x][y] != STARTING_POSITION ) {
+
+		int smallestValue = 1000000;
+		int direction = UP;
+
+		// First, find the best way to continue:
+		// Look up:
+		if( (x-1)>=0 && map[x-1][y] < smallestValue && (isValid(map[x-1][y]) == 1) ){
+			smallestValue = map[x-1][y];
+			direction = UP;
+		}
+		// Look down:
+		if ( (x+1)<mapWidth && map[x+1][y] < smallestValue && (isValid(map[x+1][y]) == 1) ){
+			smallestValue = map[x+1][y];
+			direction = DOWN;
+		}
+		// Look left:
+		if ( (y-1)>=0 && map[x][y-1] < smallestValue && (isValid(map[x][y-1]) == 1) ){
+			smallestValue = map[x][y-1];
+			direction = LEFT;
+		}
+		// Look right:
+		if ( (y+1)<mapWidth && map[x][y+1] < smallestValue && (isValid(map[x][y+1]) == 1)){
+			smallestValue = map[x][y+1];
+			direction = RIGHT;
+		}
+
+		// Then, get the specific position in coordinates:
+		position_xy * position = malloc(sizeof(position_xy));
+
+		if ( direction == UP ) {
+
+			position->x = x-1;
+			position->y = y;
+
+		} else if ( direction == DOWN ) {
+
+			position->x = x+1;
+			position->y = y;
+
+		} else if ( direction == LEFT ) {
+
+			position->x = x;
+			position->y = y-1;
+
+		} else if ( direction == RIGHT ) {
+
+			position->x = x;
+			position->y = y+1;
+		}
+
+		// And, finally, write this into the array and the queue:
+		addToBestPathQueue(position);
+		best_route_map[position->x][position->y] = BEST_PATH;
+
+		// And feed the next loop:
+		x = position->x;
+		y = position->y;
+	}
+
+	// Then, print the Best Route Queue and the Best Route Map:
+	printBestPathQueue(shortestPath);
+	printCurrentMap(best_route_map, mapWidth, mapHeight);
+}
+
+int isValid(int input) {
+	if (input == NOT_VISITED || input == OBSTACLE || input == BEST_PATH) {
+		return(0);
+	} else {
+		return(1);
+	}
 }
 
 void printCurrentMap(int ** map, int width, int height) {
@@ -229,12 +364,16 @@ void printCurrentMap(int ** map, int width, int height) {
 	for(i=0; i<height; i++) {
 		for(z=0; z<width; z++) {
 
-			if (map[i][z] == 0){
-				printf("[ ]");
+			if (map[i][z] == NOT_VISITED){
+				printf("[  ]");
 			} else if (map[i][z] == OBSTACLE) {
-				printf("[-]");
+				printf("[==]");
 			} else if (map[i][z] == STARTING_POSITION) {
-				printf("[s]");
+				printf("[st]");
+			} else if (map[i][z] == BEST_PATH) {
+				printf("[^^]");
+			} else if (map[i][z] < 10) {
+				printf("[%d ]", map[i][z]);
 			} else {
 				printf("[%d]", map[i][z]);
 			}
@@ -257,4 +396,18 @@ void printFrontierQueue(list * node) {
 
 	printf("\n-----------------\n\n");
 }
+
+void printBestPathQueue(list * node) {
+
+	list * temp = node;
+
+	printf("Best Path: ");
+	while (temp->next != NULL) {
+		printf("<-(%d,%d)", temp->position->x, temp->position->y);
+		temp = temp->next;
+	}
+
+	printf("\n-----------------\n\n");
+}
+
 
