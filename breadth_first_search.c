@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct coordinates {
 	int x;
@@ -19,10 +20,15 @@ int DOWN = 2;
 int LEFT = 3;
 int RIGHT = 4;
 
+// Constants for MAP 'landmarks':
 int STARTING_POSITION = 0;
 int NOT_VISITED = -1;
 int OBSTACLE = -2;
 int BEST_PATH = -3;
+int TARGET = -4;
+
+// Possibility of Obstacle occurence:
+int possibility = 2;
 
 void checkNeighbors(list * current, int **map_visited);
 void addToQueue(position_xy * input);
@@ -36,38 +42,53 @@ void printFrontierQueue(list * node);
 void printBestPathQueue(list * node);
 int isValid(int input);
 
+// Lists:
 list * queue_head;
 list * shortestPath;
 
 // Map initialization:
-int mapHeight = 15;
-int mapWidth = 15;
+int mapHeight;
+int mapWidth;
+
+// Other Global variables:
+int userInputXstart, userInputYstart;
+int userInputTargetX, userInputTargetY;
+int target_selected = 0;
 
 int main() {
 
 	// Current-run values:
 	int userInputXstart = 3;
 	int userInputYstart = 3;
-	int xstart = userInputXstart-1;
-	int ystart = userInputYstart-1;
-	int userInputTargetX = 13;
-	int userInputTargetY = 7;
-
-	int i;
-	int y;
+	userInputTargetX = 13;
+	userInputTargetY = 7;
 
 	// 'Map-visited' memory allocation:
 	int **map_visited;
+	int **best_route_map;
+
+	int i, y;
+
+	srand(time(NULL));
+	int random_int;
+
+	// User-input:
+	printf("\n\n-- Welcome to the Robot Pathfinding Program --\n");
+	printf("What size of a map do you want?\n\n[INPUT] Please enter a WIDTH: ");
+	scanf("%d", &mapWidth);
+	printf("\n\n[Input] Please enter a HEIGHT: ");
+	scanf("%d", &mapHeight);
+	printf("\n\n");
+
 	map_visited = (int **) malloc(mapHeight*sizeof(int *));
 
-	for(i=0; i<mapWidth; i++){
+	for(i=0; i<mapHeight; i++){
 		map_visited[i] = (int *) malloc(mapWidth*sizeof(int));
 	}
-
-	int **best_route_map;
+	
 	best_route_map = (int **) malloc(mapHeight*sizeof(int *));
 
-	for(i=0; i<mapWidth; i++){
+	for(i=0; i<mapHeight; i++){
 		best_route_map[i] = (int *) malloc(mapWidth*sizeof(int));
 	}
 
@@ -75,24 +96,54 @@ int main() {
 	for (i=0; i<mapHeight; i++) {
 		for (y=0; y<mapWidth; y++) {
 			map_visited[i][y]= NOT_VISITED;
+
+			// This sets random squares as obstacles:
+			if( (random_int = rand()%10) < possibility ) {
+				map_visited[i][y] = OBSTACLE;
+			}
 		}
 	}
 
-	// Set some obstacles:
-	map_visited[10][0] = OBSTACLE;
-	map_visited[10][1] = OBSTACLE;
-	map_visited[10][2] = OBSTACLE;
-	map_visited[10][3] = OBSTACLE;
-	map_visited[10][4] = OBSTACLE;
-	map_visited[10][5] = OBSTACLE;
-	map_visited[11][6] = OBSTACLE;
-	map_visited[11][7] = OBSTACLE;
-	map_visited[10][8] = OBSTACLE;
-	map_visited[10][9] = OBSTACLE;
+	// User-input of start positions:
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
 
-	// Beginning of the sequence:
+	printf("\n[?] Where do you want the Starting Position to be?\n");
+	printf("[INPUT] Enter the x-axis position (1 - %d): ", mapWidth);
+	scanf("%d", &userInputXstart);
+	printf("\n[INPUT] Enter the y-axis position (1 - %d):", mapHeight);
+	scanf("%d", &userInputYstart);
+
+	int xstart = userInputXstart-1;
+	int ystart = userInputYstart-1;
+
 	position_xy * start = new_position(xstart, ystart);
 	map_visited[xstart][ystart] = STARTING_POSITION;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+
+	// User-input of target positions:
+	printf("\n[?] Where do you want the Target to be?\n");
+	printf("[INPUT] Enter the HEIGHT-axis position of the target (1 - %d): ", mapHeight);
+	int temp_inputx;
+	scanf("%d", &temp_inputx);
+	userInputTargetX = temp_inputx-1;
+
+	printf("\n[INPUT] Enter the WIDTH-axis position of the target (1 - %d):", mapWidth);
+	int temp_inputy;
+	scanf("%d", &temp_inputy);
+	userInputTargetY = temp_inputy-1;
+
+	target_selected = 1;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+	printf("[...] Press ENTER to start the algorithm.\n");
+	scanf("");
+
+	// Beginning of the sequence:
+
 	addToQueue(start);
 
 	// The main loop of the Algorithm:
@@ -361,10 +412,28 @@ void printCurrentMap(int ** map, int width, int height) {
 
 	int i, z;
 
-	for(i=0; i<height; i++) {
-		for(z=0; z<width; z++) {
+	printf("    ");
+	for(i=0; i<width; i++){
+		if(i<9){
+			printf(" %d  ", i+1);
+		} else {
+			printf(" %d ", i+1);
+		}
+	}
+	printf("\n");
 
-			if (map[i][z] == NOT_VISITED){
+	for(i=0; i<height; i++) {
+
+		if(i<9){
+			printf(" %d  ", i+1);
+		} else {
+			printf(" %d ", i+1);
+		}
+
+		for(z=0; z<width; z++) {
+			if ( i == userInputTargetX && z == userInputTargetY && target_selected == 1 ) {
+				printf("[TA]"); // It's the Target
+			} else if (map[i][z] == NOT_VISITED){
 				printf("[  ]");
 			} else if (map[i][z] == OBSTACLE) {
 				printf("[==]");
@@ -409,5 +478,3 @@ void printBestPathQueue(list * node) {
 
 	printf("\n-----------------\n\n");
 }
-
-
