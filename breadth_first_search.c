@@ -36,8 +36,8 @@ void addToBestPathQueue(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
 int positionsAreValid(list * current, int direction);
-void checkPosition(list * current, int **map_visited, int addX, int addY);
-void findShortestPath( int **map, int **best_route_map, int target_x, int target_y);
+void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost);
+int findShortestPath( int **map, int **best_route_map, int target_x, int target_y);
 void printFrontierQueue(list * node);
 void printBestPathQueue(list * node);
 int isValid(int input);
@@ -195,23 +195,23 @@ int main() {
 void checkNeighbors(list * current, int **map_visited){
 
 		if (positionsAreValid(current, RIGHT) == 1){
-			checkPosition(current, map_visited, 0, 1);
+			checkPosition(current, map_visited, 0, 1, 2);
 		}
 
 		if (positionsAreValid(current, LEFT) == 1){
-			checkPosition(current, map_visited, 0, -1);
+			checkPosition(current, map_visited, 0, -1, 2);
 		}
 
 		if (positionsAreValid(current, UP) == 1){
-			checkPosition(current, map_visited, -1, 0);
+			checkPosition(current, map_visited, -1, 0, 1);
 		}
 
 		if (positionsAreValid(current, DOWN) == 1){
-			checkPosition(current, map_visited, 1, 0);
+			checkPosition(current, map_visited, 1, 0, 1);
 		}
 }
 
-void checkPosition(list * current, int **map_visited, int addX, int addY) {
+void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost) {
 
 	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
 
@@ -221,7 +221,7 @@ void checkPosition(list * current, int **map_visited, int addX, int addY) {
 
 		// Mark the position as Visited (along with the cost of travelling there):
 		int current_cost = map_visited[current->position->x][current->position->y];
-		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + 1;
+		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + addedCost;
 	}
 }
 
@@ -340,11 +340,13 @@ position_xy * new_position(int x, int y){
 	return (new_position);
 }
 
-void findShortestPath( int **map, int **best_route_map, int target_x, int target_y ) {
+int findShortestPath( int **map, int **best_route_map, int target_x, int target_y ) {
 
 	int x = target_x;
 	int y = target_y;
 	int i, z;
+
+	int total_cost = 0;
 
 	// Initialize the base of the 'best-route map' array:
 	for (i=0; i<mapHeight; i++) {
@@ -406,16 +408,21 @@ void findShortestPath( int **map, int **best_route_map, int target_x, int target
 
 		// And, finally, write this into the array and the queue:
 		addToBestPathQueue(position);
+		total_cost += best_route_map[position->x][position->y];
 		best_route_map[position->x][position->y] = BEST_PATH;
-
 		// And feed the next loop:
 		x = position->x;
 		y = position->y;
 	}
 
 	// Then, print the Best Route Queue and the Best Route Map:
+	printf("-----------------\n");
 	printBestPathQueue(shortestPath);
 	printCurrentMap(best_route_map, mapWidth, mapHeight);
+	printf("The Total Cost is: %d\n", total_cost);
+	printf("-----------------\n\n");
+
+	return(total_cost);
 }
 
 int isValid(int input) {
@@ -495,6 +502,5 @@ void printBestPathQueue(list * node) {
 		printf("<-(%d,%d)", temp->position->x, temp->position->y);
 		temp = temp->next;
 	}
-
-	printf("\n-----------------\n\n");
+	printf("\n\n");
 }
