@@ -52,16 +52,16 @@ int mapWidth;
 
 // Other Global variables:
 int userInputXstart, userInputYstart;
-int userInputTargetX, userInputTargetY;
-int target_selected = 0;
+int userInputTargetX1, userInputTargetY1;
+int userInputTargetX2, userInputTargetY2;
+int target1_selected = 0;
+int target2_selected = 0;
 
 int main() {
 
 	// Current-run values:
 	int userInputXstart = 3;
 	int userInputYstart = 3;
-	userInputTargetX = 13;
-	userInputTargetY = 7;
 
 	// 'Map-visited' memory allocation:
 	int **map_visited;
@@ -124,26 +124,39 @@ int main() {
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	// User-input of target positions:
-	printf("\n[?] Where do you want the Target to be?\n");
-	printf("[INPUT] Enter the HEIGHT-axis position of the target (1 - %d): ", mapHeight);
+
 	int temp_inputx;
-	scanf("%d", &temp_inputx);
-	userInputTargetX = temp_inputx-1;
-
-	printf("\n[INPUT] Enter the WIDTH-axis position of the target (1 - %d):", mapWidth);
 	int temp_inputy;
-	scanf("%d", &temp_inputy);
-	userInputTargetY = temp_inputy-1;
 
-	target_selected = 1;
+	printf("\n[?] Where do you want the First Target to be?\n");
+	printf("[INPUT] Enter the HEIGHT-axis position of the 1st target (1 - %d): ", mapHeight);
+	scanf("%d", &temp_inputx);
+	userInputTargetX1 = temp_inputx-1;
+
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d):", mapWidth);
+	scanf("%d", &temp_inputy);
+	userInputTargetY1 = temp_inputy-1;
+
+	target1_selected = 1;
 
 	printf("This is the current map:\n\n");
 	printCurrentMap(map_visited, mapWidth, mapHeight);
-	printf("[...] Press ENTER to start the algorithm.\n");
-	scanf("");
+
+	printf("\n[?] Where do you want the Second Target to be?\n");
+	printf("[INPUT] Enter the HEIGHT-axis position of the 2nd target (1 - %d): ", mapHeight);
+	scanf("%d", &temp_inputx);
+	userInputTargetX2 = temp_inputx-1;
+
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d):", mapWidth);
+	scanf("%d", &temp_inputy);
+	userInputTargetY2 = temp_inputy-1;
+
+	target2_selected = 1;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	// Beginning of the sequence:
-
 	addToQueue(start);
 
 	// The main loop of the Algorithm:
@@ -170,8 +183,13 @@ int main() {
 		}
 	}
 
-	// Find the Shortest Path:
-	findShortestPath(map_visited, best_route_map, userInputTargetX, userInputTargetY);
+	// Find the Shortest Paths:
+	printf("[PATH] The shortest path to the First Target is:\n");
+	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+
+	printf("\n");
+	printf("[PATH] The shortest path to the Second Target is:\n");
+	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
 }
 
 void checkNeighbors(list * current, int **map_visited){
@@ -431,8 +449,10 @@ void printCurrentMap(int ** map, int width, int height) {
 		}
 
 		for(z=0; z<width; z++) {
-			if ( i == userInputTargetX && z == userInputTargetY && target_selected == 1 ) {
-				printf("[TA]"); // It's the Target
+			if ( i == userInputTargetX1 && z == userInputTargetY1 && target1_selected == 1 ) {
+				printf("[T1]"); // It's the Target
+			} else if ( i == userInputTargetX2 && z == userInputTargetY2 && target2_selected == 1 ) {
+				printf("[T2]"); // It's the Target
 			} else if (map[i][z] == NOT_VISITED){
 				printf("[  ]");
 			} else if (map[i][z] == OBSTACLE) {
