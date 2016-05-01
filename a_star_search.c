@@ -57,6 +57,9 @@ int userInputTargetX2, userInputTargetY2;
 int target1_selected = 0;
 int target2_selected = 0;
 
+int target1found = 0;
+int target2found = 0;
+
 int main() {
 
 	// Current-run values:
@@ -160,7 +163,7 @@ int main() {
 	addToQueue(start);
 
 	// The main loop of the Algorithm:
-	while (queue_head != NULL){
+	while (queue_head != NULL && target1found != 1 && target2found != 1){
 
 		list * current = queue_head;
 
@@ -173,6 +176,14 @@ int main() {
 
 		// Implementation of Neighbor Checking:
 		checkNeighbors(current, map_visited);
+
+		if (current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
+			target1found = 1;
+		}
+
+		if (current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
+			target2found = 1;	
+		}
 
 		// Printing of the current state of the search:
 		printCurrentMap(map_visited, mapWidth, mapHeight);
