@@ -9,7 +9,7 @@ typedef struct coordinates {
 
 typedef struct positionList {
 	position_xy * position;
-	int cost;
+	int priority;
 	struct positionList * previous;
 	struct positionList * next;
 } list;
@@ -32,7 +32,7 @@ int TARGET = -4;
 int possibility = 2;
 
 void checkNeighbors(list * current, int **map_visited);
-void addToQueue(position_xy * input, int inputcost);
+void addToQueue(position_xy * input, int inputPriority);
 void addToBestPathQueue(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
@@ -42,6 +42,8 @@ int findShortestPath( int **map, int **best_route_map, int target_x, int target_
 void earlyExitCheck(list * current);
 void printFrontierQueue(list * node);
 void printBestPathQueue(list * node);
+list * getNextByPriority();
+int heuristic(position_xy * a, position_xy * b);
 int isValid(int input);
 
 // Lists:
@@ -58,6 +60,9 @@ int userInputTargetX1, userInputTargetY1;
 int userInputTargetX2, userInputTargetY2;
 int target1_selected = 0;
 int target2_selected = 0;
+
+position_xy * target1;
+position_xy * target2;
 
 int target1found = 0;
 int target2found = 0;
@@ -143,6 +148,10 @@ int main() {
 
 	target1_selected = 1;
 
+	target1 = malloc(sizeof(position_xy));
+	target1->x = userInputTargetX1;
+	target1->y = userInputTargetY1;
+
 	printf("This is the current map:\n\n");
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
@@ -157,23 +166,20 @@ int main() {
 
 	target2_selected = 1;
 
+	target2 = malloc(sizeof(position_xy));
+	target2->x = userInputTargetX2;
+	target2->y = userInputTargetY2;
+
 	printf("This is the current map:\n\n");
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	// Beginning of the sequence:
-	addToQueue(start, 0);
+	addToQueue(start, (0 + heuristic(start, target1)) );
 
 	// The main loop of the Algorithm:
 	while (queue_head != NULL && (target1found != 1 || target2found != 1) ){
 
-		list * current = queue_head;
-
-		if (queue_head->next != NULL) {
-			queue_head = queue_head->next;
-			queue_head->previous = NULL;
-		} else {
-			queue_head = NULL;
-		}
+		list * current = getNextByPriority();
 
 		// Implementation of Neighbor Checking:
 		checkNeighbors(current, map_visited);
@@ -197,6 +203,69 @@ int main() {
 	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
 }
 
+list * getNextByPriority(){
+
+	int i;
+	int iterationCounter = 0;
+	int positionOfMinimum = 0;
+	int minimumPriority = 1000000000;
+
+	list * pointer = queue_head;
+
+	// If there is only one Node left:
+	if (queue_head->next == NULL) {
+
+		list * temporary = malloc(sizeof(list));
+
+		temporary->position = queue_head->position;
+		temporary->previous = NULL;
+		temporary->next = NULL;
+		queue_head = NULL;
+
+		return(temporary);
+	}
+
+	// Find a Node with the smallest priority:
+	while( pointer != NULL ) {
+
+		iterationCounter++;
+
+		if (pointer->priority < minimumPriority) {
+			minimumPriority = pointer->priority;
+			positionOfMinimum = iterationCounter;
+		}
+
+		pointer = pointer->next;
+	}
+
+	// Return the found Node with a smallest priority:
+	pointer = queue_head;
+
+	for(i=1; i<=positionOfMinimum; i++){
+		pointer = pointer->next;
+	}
+
+	// Remove that Node from the Priority Queue:
+	if(pointer->previous != NULL && pointer->next != NULL) {
+		pointer->previous->next = pointer->next;
+		pointer->next->previous = pointer->previous;
+	} else if (pointer->next == NULL && pointer->previous != NULL) {
+		pointer->previous->next = NULL;
+	} else if (pointer->next != NULL && pointer->previous == NULL) {
+		queue_head = queue_head->next;
+	}
+
+	return(pointer);
+}
+
+int heuristic(position_xy * a, position_xy * b) {
+
+	// Manhattan distance on a square grid
+	int distance = abs(a->x - b->x) + abs(a->y - b->y);
+	printf("Heuristic: %d.\n\n", distance);
+	return (distance);
+}
+
 void checkNeighbors(list * current, int **map_visited){
 
 		earlyExitCheck(current);
@@ -218,19 +287,6 @@ void checkNeighbors(list * current, int **map_visited){
 		}
 }
 
-void earlyExitCheck(list * current) {
-
-	if (current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
-		target1found = 1;
-		printf("Target 1 found!\n\n");
-	}
-
-	if (current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
-		target2found = 1;
-		printf("Target 2 found!\n\n");
-	}
-}
-
 void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost) {
 
 	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
@@ -240,7 +296,9 @@ void checkPosition(list * current, int **map_visited, int addX, int addY, int ad
 
 		// Add the new position to the Queue and mark the position as Visited
 		// (along with the cost of travelling there):
-		addToQueue(nextPosition, current_cost+addedCost);
+		int priority = current_cost + heuristic(current->position, target1) + addedCost;
+
+		addToQueue(nextPosition, priority);
 		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + addedCost;
 	}
 }
@@ -296,7 +354,7 @@ int positionsAreValid(list * current, int direction) {
 	}
 }
 
-void addToQueue(position_xy * input, int inputcost) {
+void addToQueue(position_xy * input, int inputPriority) {
 	
 	if (queue_head == NULL) {
 
@@ -304,7 +362,7 @@ void addToQueue(position_xy * input, int inputcost) {
 		queue_head->previous = NULL;
 		queue_head->next = NULL;
 		queue_head->position = input;
-		queue_head->cost = inputcost;
+		queue_head->priority = inputPriority;
 
 	} else {
 
@@ -321,7 +379,7 @@ void addToQueue(position_xy * input, int inputcost) {
 
 		new_node->previous = temp_node;
 		new_node->position = input;
-		new_node->cost = inputcost;
+		new_node->priority = inputPriority;
 		new_node->next = NULL;
 	}
 }
@@ -335,7 +393,7 @@ void addToBestPathQueue(position_xy * input) {
 		shortestPath->next = NULL;
 		shortestPath->position = input;
 		// This is temporary:
-		shortestPath->cost = 0;
+		shortestPath->priority = 0;
 
 	} else {
 
@@ -354,7 +412,7 @@ void addToBestPathQueue(position_xy * input) {
 		new_node->position = input;
 		new_node->next = NULL;
 		// This is temporary:
-		new_node->cost = 0;
+		new_node->priority = 0;
 	}
 }
 
@@ -364,6 +422,19 @@ position_xy * new_position(int x, int y){
 	new_position->x = x;
 	new_position->y = y;
 	return (new_position);
+}
+
+void earlyExitCheck(list * current) {
+
+	if (current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
+		target1found = 1;
+		printf("Target 1 found!\n\n");
+	}
+
+	if (current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
+		target2found = 1;
+		printf("Target 2 found!\n\n");
+	}
 }
 
 int findShortestPath( int **map, int **best_route_map, int target_x, int target_y ) {
@@ -511,7 +582,7 @@ void printFrontierQueue(list * node) {
 
 	printf("Queue: ");
 	while (temp->next != NULL) {
-		printf("(%d,%d)->", (temp->position->x)+1, (temp->position->y)+1);
+		printf("[%d](%d,%d)->", temp->priority,(temp->position->x)+1, (temp->position->y)+1);
 		temp = temp->next;
 	}
 	printf("NULL");
