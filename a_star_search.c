@@ -43,6 +43,7 @@ int findShortestPath( int **map, int **best_route_map, int target_x, int target_
 void earlyExitCheck(list * current);
 void printFrontierQueue(list * node);
 void printBestPathQueue(list * node);
+void printShortestPaths();
 list * getNextByPriority();
 int heuristic(position_xy * a, position_xy * b);
 int isValid(int input);
@@ -63,31 +64,28 @@ int userInputTargetX2, userInputTargetY2;
 int target1_selected = 0;
 int target2_selected = 0;
 
-position_xy * currentTarget;
-
 position_xy * target1;
 position_xy * target2;
+position_xy * currentTarget;
 
 int target1found = 0;
 int target2found = 0;
 
 // -- Variables for UserInputInitialization --
-// Current-run values:
 int userInputXstart = 3;
 int userInputYstart = 3;
+position_xy * start;
 
-// 'Map-visited' memory allocation:
 int **map_visited;
 int **best_route_map;
 
 int i, y;
 int random_int;
 
-position_xy * start;
-
 int main() {
 
 	userInputInitialization();
+
 	// First search for the path to the first target:
 	currentTarget = target1;
 	addToQueue(start, (0 + heuristic(start, currentTarget)) );
@@ -102,12 +100,7 @@ int main() {
 		printMapStatus(map_visited, mapWidth, mapHeight);
 	}
 
-	printf("[PATH] The shortest path to the First Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
-
-	printf("\n");
-	printf("[PATH] The shortest path to the Second Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
+	printShortestPaths();
 }
 
 list * getNextByPriority() {
@@ -161,9 +154,8 @@ list * getNextByPriority() {
 
 int heuristic(position_xy * a, position_xy * b) {
 
-	// Manhattan distance on a square grid
-	int distance = abs(a->x - b->x) + abs(a->y - b->y);
-	printf("Heuristic: %d.\n\n", distance);
+	// Manhattan distance on a square grid:
+	int distance = (abs(a->x - b->x) + abs(a->y - b->y));
 	return (distance);
 }
 
@@ -318,13 +310,13 @@ void earlyExitCheck(list * current) {
 	if (current != NULL && current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
 		target1found = 1;
 		currentTarget = target2;
-		printf("Target 1 found!\n\n");
+		printf("\n --> Target 1 found! <--\n\n");
 		printf("-> Current Target Changed to 'Target 2'.\n\n");
 	}
 
 	if (current != NULL && current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
 		target2found = 1;
-		printf("Target 2 found!\n\n");
+		printf("\n -->Target 2 found! <--\n\n");
 	}
 }
 
@@ -561,6 +553,16 @@ void printCurrentMap(int ** map, int width, int height) {
 		printf("\n");
 	}
 	printf("\n");
+}
+
+void printShortestPaths() {
+
+	printf("[PATH] The shortest path to the First Target is:\n");
+	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+
+	printf("\n");
+	printf("[PATH] The shortest path to the Second Target is:\n");
+	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
 }
 
 void printFrontierQueue(list * node) {
