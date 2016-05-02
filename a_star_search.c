@@ -32,12 +32,13 @@ int TARGET = -4;
 int possibility = 2;
 
 void checkNeighbors(list * current, int **map_visited);
+void userInputInitialization();
 void addToQueue(position_xy * input, int inputPriority);
 void addToBestPathQueue(position_xy * input);
 position_xy * new_position(int x, int y);
 void printCurrentMap(int **map, int x, int y);
 int positionsAreValid(list * current, int direction);
-void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost);
+void checkPosition(list * current, int **map_visited, int direction, int addX, int addY, int addedCost);
 int findShortestPath( int **map, int **best_route_map, int target_x, int target_y);
 void earlyExitCheck(list * current);
 void printFrontierQueue(list * node);
@@ -45,6 +46,7 @@ void printBestPathQueue(list * node);
 list * getNextByPriority();
 int heuristic(position_xy * a, position_xy * b);
 int isValid(int input);
+void printMapStatus(int **map_visited, int mapWidth, int mapHeight);
 
 // Lists:
 list * queue_head;
@@ -61,140 +63,45 @@ int userInputTargetX2, userInputTargetY2;
 int target1_selected = 0;
 int target2_selected = 0;
 
+position_xy * currentTarget;
+
 position_xy * target1;
 position_xy * target2;
 
 int target1found = 0;
 int target2found = 0;
 
+// -- Variables for UserInputInitialization --
+// Current-run values:
+int userInputXstart = 3;
+int userInputYstart = 3;
+
+// 'Map-visited' memory allocation:
+int **map_visited;
+int **best_route_map;
+
+int i, y;
+int random_int;
+
+position_xy * start;
+
 int main() {
 
-	// Current-run values:
-	int userInputXstart = 3;
-	int userInputYstart = 3;
-
-	// 'Map-visited' memory allocation:
-	int **map_visited;
-	int **best_route_map;
-
-	int i, y;
-
-	srand(time(NULL));
-	int random_int;
-
-	// User-input:
-	printf("\n\n-- Welcome to the Robot Pathfinding Program --\n");
-	printf("What size of a map do you want?\n\n[INPUT] Please enter a WIDTH: ");
-	scanf("%d", &mapWidth);
-	printf("\n\n[Input] Please enter a HEIGHT: ");
-	scanf("%d", &mapHeight);
-	printf("\n\n");
-
-	map_visited = (int **) malloc(mapHeight*sizeof(int *));
-
-	for(i=0; i<mapHeight; i++){
-		map_visited[i] = (int *) malloc(mapWidth*sizeof(int));
-	}
-	
-	best_route_map = (int **) malloc(mapHeight*sizeof(int *));
-
-	for(i=0; i<mapHeight; i++){
-		best_route_map[i] = (int *) malloc(mapWidth*sizeof(int));
-	}
-
-	// Initialize "visited" array:
-	for (i=0; i<mapHeight; i++) {
-		for (y=0; y<mapWidth; y++) {
-			map_visited[i][y]= NOT_VISITED;
-
-			// This sets random squares as obstacles:
-			if( (random_int = rand()%10) < possibility ) {
-				map_visited[i][y] = OBSTACLE;
-			}
-		}
-	}
-
-	// User-input of start positions:
-	printf("This is the current map:\n\n");
-	printCurrentMap(map_visited, mapWidth, mapHeight);
-
-	printf("\n[?] Where do you want the Starting Position to be?\n");
-	printf("[INPUT] Enter the x-axis position (1 - %d): ", mapWidth);
-	scanf("%d", &userInputXstart);
-	printf("\n[INPUT] Enter the y-axis position (1 - %d):", mapHeight);
-	scanf("%d", &userInputYstart);
-
-	int xstart = userInputXstart-1;
-	int ystart = userInputYstart-1;
-
-	position_xy * start = new_position(xstart, ystart);
-	map_visited[xstart][ystart] = STARTING_POSITION;
-
-	printf("This is the current map:\n\n");
-	printCurrentMap(map_visited, mapWidth, mapHeight);
-
-	// User-input of target positions:
-	int temp_inputx;
-	int temp_inputy;
-
-	printf("\n[?] Where do you want the First Target to be?\n");
-	printf("[INPUT] Enter the HEIGHT-axis position of the 1st target (1 - %d): ", mapHeight);
-	scanf("%d", &temp_inputx);
-	userInputTargetX1 = temp_inputx-1;
-
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d):", mapWidth);
-	scanf("%d", &temp_inputy);
-	userInputTargetY1 = temp_inputy-1;
-
-	target1_selected = 1;
-
-	target1 = malloc(sizeof(position_xy));
-	target1->x = userInputTargetX1;
-	target1->y = userInputTargetY1;
-
-	printf("This is the current map:\n\n");
-	printCurrentMap(map_visited, mapWidth, mapHeight);
-
-	printf("\n[?] Where do you want the Second Target to be?\n");
-	printf("[INPUT] Enter the HEIGHT-axis position of the 2nd target (1 - %d): ", mapHeight);
-	scanf("%d", &temp_inputx);
-	userInputTargetX2 = temp_inputx-1;
-
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d):", mapWidth);
-	scanf("%d", &temp_inputy);
-	userInputTargetY2 = temp_inputy-1;
-
-	target2_selected = 1;
-
-	target2 = malloc(sizeof(position_xy));
-	target2->x = userInputTargetX2;
-	target2->y = userInputTargetY2;
-
-	printf("This is the current map:\n\n");
-	printCurrentMap(map_visited, mapWidth, mapHeight);
-
-	// Beginning of the sequence:
-	addToQueue(start, (0 + heuristic(start, target1)) );
+	userInputInitialization();
+	// First search for the path to the first target:
+	currentTarget = target1;
+	addToQueue(start, (0 + heuristic(start, currentTarget)) );
 
 	// The main loop of the Algorithm:
 	while (queue_head != NULL && (target1found != 1 || target2found != 1) ){
 
 		list * current = getNextByPriority();
 
-		// Implementation of Neighbor Checking:
 		checkNeighbors(current, map_visited);
 
-		// Printing of the current state of the search:
-		printCurrentMap(map_visited, mapWidth, mapHeight);
-
-		if(queue_head != NULL){
-			printFrontierQueue(queue_head);
-		} else {
-			printf("-> The Queue is EMPTY.\n\n");
-		}
+		printMapStatus(map_visited, mapWidth, mapHeight);
 	}
 
-	// Find the Shortest Paths:
 	printf("[PATH] The shortest path to the First Target is:\n");
 	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
 
@@ -203,17 +110,16 @@ int main() {
 	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
 }
 
-list * getNextByPriority(){
+list * getNextByPriority() {
 
-	int i;
-	int iterationCounter = 0;
-	int positionOfMinimum = 0;
 	int minimumPriority = 1000000000;
-
 	list * pointer = queue_head;
+	list * minimumCurrentElement;
 
 	// If there is only one Node left:
 	if (queue_head->next == NULL) {
+
+		printf("Debug: Inside only one node left.\n");
 
 		list * temporary = malloc(sizeof(list));
 
@@ -228,34 +134,29 @@ list * getNextByPriority(){
 	// Find a Node with the smallest priority:
 	while( pointer != NULL ) {
 
-		iterationCounter++;
-
 		if (pointer->priority < minimumPriority) {
 			minimumPriority = pointer->priority;
-			positionOfMinimum = iterationCounter;
+			minimumCurrentElement = pointer;
+			printf("Debug: Found min priority = %d\n", pointer->priority);
 		}
 
 		pointer = pointer->next;
 	}
 
-	// Return the found Node with a smallest priority:
-	pointer = queue_head;
-
-	for(i=1; i<=positionOfMinimum; i++){
-		pointer = pointer->next;
-	}
+	printf("Debug: Time to remove the node.\n");
 
 	// Remove that Node from the Priority Queue:
-	if(pointer->previous != NULL && pointer->next != NULL) {
-		pointer->previous->next = pointer->next;
-		pointer->next->previous = pointer->previous;
-	} else if (pointer->next == NULL && pointer->previous != NULL) {
-		pointer->previous->next = NULL;
-	} else if (pointer->next != NULL && pointer->previous == NULL) {
-		queue_head = queue_head->next;
+	if(minimumCurrentElement->previous == NULL && minimumCurrentElement->next != NULL){
+		queue_head = minimumCurrentElement->next;
+	} else if (minimumCurrentElement->next == NULL && minimumCurrentElement->previous != NULL) {
+		minimumCurrentElement->previous->next = NULL;
+	} else {
+		minimumCurrentElement->previous->next = minimumCurrentElement->next;
+		minimumCurrentElement->next->previous = minimumCurrentElement->previous;
 	}
 
-	return(pointer);
+	printf("Debug: Node removed.\n");
+	return(minimumCurrentElement);
 }
 
 int heuristic(position_xy * a, position_xy * b) {
@@ -269,37 +170,55 @@ int heuristic(position_xy * a, position_xy * b) {
 void checkNeighbors(list * current, int **map_visited){
 
 		earlyExitCheck(current);
-
-		if (positionsAreValid(current, RIGHT) == 1){
-			checkPosition(current, map_visited, 0, 1, 2);
-		}
-
-		if (positionsAreValid(current, LEFT) == 1){
-			checkPosition(current, map_visited, 0, -1, 2);
-		}
-
-		if (positionsAreValid(current, UP) == 1){
-			checkPosition(current, map_visited, -1, 0, 1);
-		}
-
-		if (positionsAreValid(current, DOWN) == 1){
-			checkPosition(current, map_visited, 1, 0, 1);
-		}
+		
+		checkPosition(current, map_visited, RIGHT, 0, 1, 2);
+		checkPosition(current, map_visited, LEFT, 0, -1, 2);
+		checkPosition(current, map_visited, UP, -1, 0, 1);
+		checkPosition(current, map_visited, DOWN, 1, 0, 1);
 }
 
-void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost) {
+void checkPosition(list * current, int **map_visited, int direction, int addX, int addY, int addedCost) {
 
-	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
+	if (positionsAreValid(current, direction) == 1 && map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
 
 		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
 		int current_cost = map_visited[current->position->x][current->position->y];
 
-		// Add the new position to the Queue and mark the position as Visited
-		// (along with the cost of travelling there):
-		int priority = current_cost + heuristic(current->position, target1) + addedCost;
-
+		// Add the new position to the Queue and mark the position as Visited:
+		int priority = heuristic(nextPosition, currentTarget) + addedCost;
 		addToQueue(nextPosition, priority);
 		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + addedCost;
+	}
+}
+
+void addToQueue(position_xy * input, int inputPriority) {
+	
+	if (queue_head == NULL) {
+
+		queue_head = malloc(sizeof(list));
+		queue_head->previous = NULL;
+		queue_head->next = NULL;
+		queue_head->position = input;
+		queue_head->priority = inputPriority;
+
+	} else {
+
+		list * temp_node;
+		temp_node = queue_head;
+
+		while (temp_node->next != NULL) {
+			temp_node = temp_node->next;
+		}
+
+		list * new_node = malloc(sizeof(list));
+
+		temp_node->next = new_node;
+
+		new_node->previous = temp_node;
+		new_node->next = NULL;
+
+		new_node->position = input;
+		new_node->priority = inputPriority;
 	}
 }
 
@@ -354,36 +273,6 @@ int positionsAreValid(list * current, int direction) {
 	}
 }
 
-void addToQueue(position_xy * input, int inputPriority) {
-	
-	if (queue_head == NULL) {
-
-		queue_head = malloc(sizeof(list));
-		queue_head->previous = NULL;
-		queue_head->next = NULL;
-		queue_head->position = input;
-		queue_head->priority = inputPriority;
-
-	} else {
-
-		list * temp_node;
-		temp_node = queue_head;
-
-		while(temp_node->next != NULL) {
-			temp_node = temp_node->next;
-		}
-
-		list * new_node = malloc(sizeof(list));
-
-		temp_node->next = new_node;
-
-		new_node->previous = temp_node;
-		new_node->position = input;
-		new_node->priority = inputPriority;
-		new_node->next = NULL;
-	}
-}
-
 void addToBestPathQueue(position_xy * input) {
 	
 	if (shortestPath == NULL) {
@@ -426,12 +315,14 @@ position_xy * new_position(int x, int y){
 
 void earlyExitCheck(list * current) {
 
-	if (current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
+	if (current != NULL && current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
 		target1found = 1;
+		currentTarget = target2;
 		printf("Target 1 found!\n\n");
+		printf("-> Current Target Changed to 'Target 2'.\n\n");
 	}
 
-	if (current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
+	if (current != NULL && current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
 		target2found = 1;
 		printf("Target 2 found!\n\n");
 	}
@@ -530,6 +421,102 @@ int isValid(int input) {
 	}
 }
 
+void userInputInitialization() {
+
+	srand(time(NULL));
+	
+	// User-input:
+	printf("\n\n-- Welcome to the Robot Pathfinding Program --\n");
+	printf("What size of a map do you want?\n\n[INPUT] Please enter a WIDTH: ");
+	scanf("%d", &mapWidth);
+	printf("\n\n[Input] Please enter a HEIGHT: ");
+	scanf("%d", &mapHeight);
+	printf("\n\n");
+
+	map_visited = (int **) malloc(mapHeight*sizeof(int *));
+
+	for(i=0; i<mapHeight; i++){
+		map_visited[i] = (int *) malloc(mapWidth*sizeof(int));
+	}
+	
+	best_route_map = (int **) malloc(mapHeight*sizeof(int *));
+
+	for(i=0; i<mapHeight; i++){
+		best_route_map[i] = (int *) malloc(mapWidth*sizeof(int));
+	}
+
+	// Initialize "visited" array:
+	for (i=0; i<mapHeight; i++) {
+		for (y=0; y<mapWidth; y++) {
+			map_visited[i][y]= NOT_VISITED;
+
+			// This sets random squares as obstacles:
+			if( (random_int = rand()%10) < possibility ) {
+				map_visited[i][y] = OBSTACLE;
+			}
+		}
+	}
+
+	// User-input of start positions:
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+
+	printf("\n[?] Where do you want the Starting Position to be?\n");
+	printf("[INPUT] Enter the x-axis position (1 - %d): ", mapWidth);
+	scanf("%d", &userInputXstart);
+	printf("\n[INPUT] Enter the y-axis position (1 - %d):", mapHeight);
+	scanf("%d", &userInputYstart);
+
+	int xstart = userInputXstart-1;
+	int ystart = userInputYstart-1;
+
+	start = new_position(xstart, ystart);
+	map_visited[xstart][ystart] = STARTING_POSITION;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+
+	// User-input of target positions:
+	int temp_inputx;
+	int temp_inputy;
+
+	printf("\n[?] Where do you want the First Target to be?\n");
+	printf("[INPUT] Enter the HEIGHT-axis position of the 1st target (1 - %d): ", mapHeight);
+	scanf("%d", &temp_inputx);
+	userInputTargetX1 = temp_inputx-1;
+
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d):", mapWidth);
+	scanf("%d", &temp_inputy);
+	userInputTargetY1 = temp_inputy-1;
+
+	target1_selected = 1;
+
+	target1 = malloc(sizeof(position_xy));
+	target1->x = userInputTargetX1;
+	target1->y = userInputTargetY1;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+
+	printf("\n[?] Where do you want the Second Target to be?\n");
+	printf("[INPUT] Enter the HEIGHT-axis position of the 2nd target (1 - %d): ", mapHeight);
+	scanf("%d", &temp_inputx);
+	userInputTargetX2 = temp_inputx-1;
+
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d):", mapWidth);
+	scanf("%d", &temp_inputy);
+	userInputTargetY2 = temp_inputy-1;
+
+	target2_selected = 1;
+
+	target2 = malloc(sizeof(position_xy));
+	target2->x = userInputTargetX2;
+	target2->y = userInputTargetY2;
+
+	printf("This is the current map:\n\n");
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+}
+
 void printCurrentMap(int ** map, int width, int height) {
 
 	int i, z;
@@ -578,12 +565,12 @@ void printCurrentMap(int ** map, int width, int height) {
 
 void printFrontierQueue(list * node) {
 
-	list * temp = node;
-
 	printf("Queue: ");
-	while (temp->next != NULL) {
-		printf("[%d](%d,%d)->", temp->priority,(temp->position->x)+1, (temp->position->y)+1);
-		temp = temp->next;
+	if(node != NULL) {
+		while (node->next != NULL) {
+			printf("[%d](%d,%d)->", node->priority,(node->position->x)+1, (node->position->y)+1);
+			node = node->next;
+		}
 	}
 	printf("NULL");
 
@@ -601,3 +588,15 @@ void printBestPathQueue(list * node) {
 	}
 	printf("\n\n");
 }
+
+void printMapStatus(int **map_visited, int mapWidth, int mapHeight) {
+	// Printing of the current state of the search:
+	printCurrentMap(map_visited, mapWidth, mapHeight);
+
+	if(queue_head != NULL){
+		printFrontierQueue(queue_head);
+	} else {
+		printf("-> The Queue is EMPTY.\n\n");
+	}
+}
+
