@@ -139,7 +139,10 @@ list * getNextByPriority() {
 	printf("Debug: Time to remove the node.\n");
 
 	// Remove that Node from the Priority Queue:
-	if(minimumCurrentElement->previous == NULL && minimumCurrentElement->next != NULL){
+
+	if (minimumCurrentElement == queue_head) {
+		queue_head = queue_head->next;
+	} else if(minimumCurrentElement->previous == NULL && minimumCurrentElement->next != NULL){
 		queue_head = minimumCurrentElement->next;
 	} else if (minimumCurrentElement->next == NULL && minimumCurrentElement->previous != NULL) {
 		minimumCurrentElement->previous->next = NULL;
@@ -557,12 +560,20 @@ void printCurrentMap(int ** map, int width, int height) {
 
 void printShortestPaths() {
 
-	printf("[PATH] The shortest path to the First Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+	if (target1found == 1){
+		printf("[PATH] The shortest path to the First Target is:\n");
+		findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+		printf("\n");
+	} else {
+		printf("[ERROR] No path to the First Target could be found!\n\n");
+	}
 
-	printf("\n");
-	printf("[PATH] The shortest path to the Second Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
+	if (target2found == 1){
+		printf("[PATH] The shortest path to the Second Target is:\n");
+		findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
+	} else {
+		printf("[ERROR] No path to the Second Target could be found!\n\n");
+	}
 }
 
 void printFrontierQueue(list * node) {
@@ -601,4 +612,3 @@ void printMapStatus(int **map_visited, int mapWidth, int mapHeight) {
 		printf("-> The Queue is EMPTY.\n\n");
 	}
 }
-
