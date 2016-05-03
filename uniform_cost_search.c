@@ -57,6 +57,9 @@ int userInputTargetX2, userInputTargetY2;
 int target1_selected = 0;
 int target2_selected = 0;
 
+int target1found = 0;
+int target2found = 0;
+
 int main() {
 
 	// Current-run values:
@@ -184,12 +187,21 @@ int main() {
 	}
 
 	// Find the Shortest Paths:
-	printf("[PATH] The shortest path to the First Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+	if(target1found == 1) {
+		printf("[PATH] The shortest path to the First Target is:\n");
+		findShortestPath(map_visited, best_route_map, userInputTargetX1, userInputTargetY1);
+		printf("\n");
+	} else {
+		printf("[ERROR] A path to the First Target could not be found.\n\n");
+	}
 
-	printf("\n");
-	printf("[PATH] The shortest path to the Second Target is:\n");
-	findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
+	if(target2found == 1) {
+		printf("[PATH] The shortest path to the Second Target is:\n");
+		findShortestPath(map_visited, best_route_map, userInputTargetX2, userInputTargetY2);
+		printf("\n");
+	} else {
+		printf("[ERROR] A path to the Second Target could not be found.\n\n");
+	}
 }
 
 void checkNeighbors(list * current, int **map_visited){
@@ -212,6 +224,16 @@ void checkNeighbors(list * current, int **map_visited){
 }
 
 void checkPosition(list * current, int **map_visited, int addX, int addY, int addedCost) {
+
+	if (target1found == 0 && current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
+		target1found = 1;
+		printf("\n --> Target 1 found! <--\n\n");
+	}
+
+	if (target2found == 0 && current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
+		target2found = 1;
+		printf("\n -->Target 2 found! <--\n\n");
+	}
 
 	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
 
