@@ -130,7 +130,7 @@ list * getNextByPriority() {
 		if (pointer->priority < minimumPriority) {
 			minimumPriority = pointer->priority;
 			minimumCurrentElement = pointer;
-			printf("Debug: Found min priority = %d\n", pointer->priority);
+			//printf("Debug: Found min priority = %d\n", pointer->priority);
 		}
 
 		pointer = pointer->next;
@@ -166,10 +166,10 @@ void checkNeighbors(list * current, int **map_visited){
 
 		earlyExitCheck(current);
 		
-		checkPosition(current, map_visited, RIGHT, 0, 1, 2);
-		checkPosition(current, map_visited, LEFT, 0, -1, 2);
-		checkPosition(current, map_visited, UP, -1, 0, 1);
-		checkPosition(current, map_visited, DOWN, 1, 0, 1);
+		checkPosition(current, map_visited, RIGHT, 0, 1, 1);
+		checkPosition(current, map_visited, LEFT, 0, -1, 1);
+		checkPosition(current, map_visited, UP, -1, 0, 2);
+		checkPosition(current, map_visited, DOWN, 1, 0, 2);
 }
 
 void checkPosition(list * current, int **map_visited, int direction, int addX, int addY, int addedCost) {
@@ -183,37 +183,6 @@ void checkPosition(list * current, int **map_visited, int direction, int addX, i
 		int priority = heuristic(nextPosition, currentTarget) + addedCost;
 		addToQueue(nextPosition, priority);
 		map_visited[(current->position->x)+addX][(current->position->y)+addY] = current_cost + addedCost;
-	}
-}
-
-void addToQueue(position_xy * input, int inputPriority) {
-	
-	if (queue_head == NULL) {
-
-		queue_head = malloc(sizeof(list));
-		queue_head->previous = NULL;
-		queue_head->next = NULL;
-		queue_head->position = input;
-		queue_head->priority = inputPriority;
-
-	} else {
-
-		list * temp_node;
-		temp_node = queue_head;
-
-		while (temp_node->next != NULL) {
-			temp_node = temp_node->next;
-		}
-
-		list * new_node = malloc(sizeof(list));
-
-		temp_node->next = new_node;
-
-		new_node->previous = temp_node;
-		new_node->next = NULL;
-
-		new_node->position = input;
-		new_node->priority = inputPriority;
 	}
 }
 
@@ -265,6 +234,37 @@ int positionsAreValid(list * current, int direction) {
 
 	} else {
 		return(0);
+	}
+}
+
+void addToQueue(position_xy * input, int inputPriority) {
+	
+	if (queue_head == NULL) {
+
+		queue_head = malloc(sizeof(list));
+		queue_head->previous = NULL;
+		queue_head->next = NULL;
+		queue_head->position = input;
+		queue_head->priority = inputPriority;
+
+	} else {
+
+		list * temp_node;
+		temp_node = queue_head;
+
+		while (temp_node->next != NULL) {
+			temp_node = temp_node->next;
+		}
+
+		list * new_node = malloc(sizeof(list));
+
+		temp_node->next = new_node;
+
+		new_node->previous = temp_node;
+		new_node->next = NULL;
+
+		new_node->position = input;
+		new_node->priority = inputPriority;
 	}
 }
 
@@ -457,9 +457,9 @@ void userInputInitialization() {
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	printf("\n[?] Where do you want the Starting Position to be?\n");
-	printf("[INPUT] Enter the x-axis position (1 - %d): ", mapWidth);
+	printf("[INPUT] Enter the HEIGHT-axis position (1 - %d): ", mapHeight);
 	scanf("%d", &userInputXstart);
-	printf("\n[INPUT] Enter the y-axis position (1 - %d):", mapHeight);
+	printf("\n[INPUT] Enter the WIDTH-axis position (1 - %d): ", mapWidth);
 	scanf("%d", &userInputYstart);
 
 	int xstart = userInputXstart-1;
@@ -480,7 +480,7 @@ void userInputInitialization() {
 	scanf("%d", &temp_inputx);
 	userInputTargetX1 = temp_inputx-1;
 
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d):", mapWidth);
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d): ", mapWidth);
 	scanf("%d", &temp_inputy);
 	userInputTargetY1 = temp_inputy-1;
 
@@ -498,7 +498,7 @@ void userInputInitialization() {
 	scanf("%d", &temp_inputx);
 	userInputTargetX2 = temp_inputx-1;
 
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d):", mapWidth);
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d): ", mapWidth);
 	scanf("%d", &temp_inputy);
 	userInputTargetY2 = temp_inputy-1;
 

@@ -27,7 +27,7 @@ int OBSTACLE = -2;
 int BEST_PATH = -3;
 int TARGET = -4;
 
-// Possibility of Obstacle occurence:
+// Possibility of Obstacle occurence (0-10):
 int possibility = 2;
 
 void checkNeighbors(list * current, int **map_visited);
