@@ -206,19 +206,19 @@ int main() {
 void checkNeighbors(list * current, int **map_visited){
 
 		if (positionsAreValid(current, RIGHT) == 1){
-			checkPosition(current, map_visited, 0, 1, 2);
+			checkPosition(current, map_visited, 0, 1, 1);
 		}
 
 		if (positionsAreValid(current, LEFT) == 1){
-			checkPosition(current, map_visited, 0, -1, 2);
+			checkPosition(current, map_visited, 0, -1, 1);
 		}
 
 		if (positionsAreValid(current, UP) == 1){
-			checkPosition(current, map_visited, -1, 0, 1);
+			checkPosition(current, map_visited, -1, 0, 2);
 		}
 
 		if (positionsAreValid(current, DOWN) == 1){
-			checkPosition(current, map_visited, 1, 0, 1);
+			checkPosition(current, map_visited, 1, 0, 2);
 		}
 }
 
