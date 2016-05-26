@@ -31,8 +31,11 @@ int TARGET = -4;
 // Possibility of Obstacle occurence:
 int possibility = 2;
 
+int totalNumberOfExtensions = 0;
+
 void checkNeighbors(list * current, int **map_visited);
 void userInputInitialization();
+void setTargetAsClosestOne();
 void addToQueue(position_xy * input, int inputPriority);
 void addToBestPathQueue(position_xy * input);
 position_xy * new_position(int x, int y);
@@ -87,7 +90,8 @@ int main() {
 	userInputInitialization();
 
 	// First search for the path to the first target:
-	currentTarget = target1;
+	setTargetAsClosestOne();
+	
 	addToQueue(start, (0 + heuristic(start, currentTarget)) );
 
 	// The main loop of the Algorithm:
@@ -101,6 +105,18 @@ int main() {
 	}
 
 	printShortestPaths();
+}
+
+void setTargetAsClosestOne() {
+
+	int distanceToTarget1 = heuristic(start, target1);
+	int distanceToTarget2 = heuristic(start, target2);
+
+	if (distanceToTarget1 < distanceToTarget2) {
+		currentTarget = target1;
+	} else {
+		currentTarget = target2;
+	}
 }
 
 list * getNextByPriority() {
@@ -136,8 +152,6 @@ list * getNextByPriority() {
 		pointer = pointer->next;
 	}
 
-	printf("Debug: Time to remove the node.\n");
-
 	// Remove that Node from the Priority Queue:
 
 	if (minimumCurrentElement == queue_head) {
@@ -151,7 +165,6 @@ list * getNextByPriority() {
 		minimumCurrentElement->next->previous = minimumCurrentElement->previous;
 	}
 
-	printf("Debug: Node removed.\n");
 	return(minimumCurrentElement);
 }
 
@@ -175,6 +188,8 @@ void checkNeighbors(list * current, int **map_visited){
 void checkPosition(list * current, int **map_visited, int direction, int addX, int addY, int addedCost) {
 
 	if (positionsAreValid(current, direction) == 1 && map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
+
+		totalNumberOfExtensions++;
 
 		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
 		int current_cost = map_visited[current->position->x][current->position->y];
@@ -311,15 +326,25 @@ position_xy * new_position(int x, int y){
 void earlyExitCheck(list * current) {
 
 	if (current != NULL && current->position->x == userInputTargetX1 && current->position->y == userInputTargetY1){
+		
 		target1found = 1;
-		currentTarget = target2;
 		printf("\n --> Target 1 found! <--\n\n");
-		printf("-> Current Target Changed to 'Target 2'.\n\n");
+
+		if(target2found == 0) {
+			currentTarget = target2;
+			printf("-> Current Target Changed to 'Target 2'.\n\n");
+		}
 	}
 
 	if (current != NULL && current->position->x == userInputTargetX2 && current->position->y == userInputTargetY2){
+
 		target2found = 1;
 		printf("\n -->Target 2 found! <--\n\n");
+
+		if(target1found == 0) {
+			currentTarget = target1;
+			printf("-> Current Target Changed to 'Target 1'.\n\n");
+		}
 	}
 }
 
@@ -372,26 +397,29 @@ int findShortestPath( int **map, int **best_route_map, int target_x, int target_
 
 			position->x = x-1;
 			position->y = y;
+			total_cost += 2;
 
 		} else if ( direction == DOWN ) {
 
 			position->x = x+1;
 			position->y = y;
+			total_cost += 2;
 
 		} else if ( direction == LEFT ) {
 
 			position->x = x;
 			position->y = y-1;
+			total_cost += 1;
 
 		} else if ( direction == RIGHT ) {
 
 			position->x = x;
 			position->y = y+1;
+			total_cost += 1;
 		}
 
 		// And, finally, write this into the array and the queue:
 		addToBestPathQueue(position);
-		total_cost += best_route_map[position->x][position->y];
 		best_route_map[position->x][position->y] = BEST_PATH;
 		// And feed the next loop:
 		x = position->x;
@@ -574,6 +602,8 @@ void printShortestPaths() {
 	} else {
 		printf("[ERROR] No path to the Second Target could be found!\n\n");
 	}
+
+	printf("[STATS] The Total Number of Extensions was: %d\n\n", totalNumberOfExtensions);
 }
 
 void printFrontierQueue(list * node) {

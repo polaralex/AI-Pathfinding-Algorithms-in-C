@@ -30,6 +30,8 @@ int TARGET = -4;
 // Possibility of Obstacle occurence (0-10):
 int possibility = 2;
 
+int totalNumberOfExtensions = 0;
+
 void checkNeighbors(list * current, int **map_visited);
 void addToQueue(position_xy * input);
 void addToBestPathQueue(position_xy * input);
@@ -201,6 +203,9 @@ int main() {
 	} else {
 		printf("[ERROR] A path to the Second Target could not be found.\n\n");
 	}
+
+	printf("[STATS] The Total Number of Extensions was: %d\n\n", totalNumberOfExtensions);
+
 }
 
 void checkNeighbors(list * current, int **map_visited){
@@ -235,6 +240,8 @@ void checkPosition(list * current, int **map_visited, int addX, int addY, int ad
 	}
 
 	if (map_visited[(current->position->x)+addX][(current->position->y)+addY] == NOT_VISITED) {
+
+		totalNumberOfExtensions++;
 
 		// Add the new position to the Queue:
 		position_xy * nextPosition = new_position( (current->position->x)+addX, (current->position->y)+addY);
@@ -410,26 +417,30 @@ int findShortestPath( int **map, int **best_route_map, int target_x, int target_
 
 			position->x = x-1;
 			position->y = y;
+			total_cost += 2;
+
 
 		} else if ( direction == DOWN ) {
 
 			position->x = x+1;
 			position->y = y;
+			total_cost += 2;
 
 		} else if ( direction == LEFT ) {
 
 			position->x = x;
 			position->y = y-1;
+			total_cost += 1;
 
 		} else if ( direction == RIGHT ) {
 
 			position->x = x;
 			position->y = y+1;
+			total_cost += 1;
 		}
 
 		// And, finally, write this into the array and the queue:
 		addToBestPathQueue(position);
-		total_cost += best_route_map[position->x][position->y];
 		best_route_map[position->x][position->y] = BEST_PATH;
 		// And feed the next loop:
 		x = position->x;
