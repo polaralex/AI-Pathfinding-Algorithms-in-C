@@ -112,9 +112,9 @@ int main() {
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	printf("\n[?] Where do you want the Starting Position to be?\n");
-	printf("[INPUT] Enter the x-axis position (1 - %d): ", mapWidth);
+	printf("[INPUT] Enter the HEIGHT-axis position (1 - %d): ", mapHeight);
 	scanf("%d", &userInputXstart);
-	printf("\n[INPUT] Enter the y-axis position (1 - %d):", mapHeight);
+	printf("\n[INPUT] Enter the WIDTH-axis position (1 - %d): ", mapWidth);
 	scanf("%d", &userInputYstart);
 
 	int xstart = userInputXstart-1;
@@ -127,7 +127,6 @@ int main() {
 	printCurrentMap(map_visited, mapWidth, mapHeight);
 
 	// User-input of target positions:
-
 	int temp_inputx;
 	int temp_inputy;
 
@@ -136,7 +135,7 @@ int main() {
 	scanf("%d", &temp_inputx);
 	userInputTargetX1 = temp_inputx-1;
 
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d):", mapWidth);
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 1st target (1 - %d): ", mapWidth);
 	scanf("%d", &temp_inputy);
 	userInputTargetY1 = temp_inputy-1;
 
@@ -150,7 +149,7 @@ int main() {
 	scanf("%d", &temp_inputx);
 	userInputTargetX2 = temp_inputx-1;
 
-	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d):", mapWidth);
+	printf("\n[INPUT] Enter the WIDTH-axis position of the 2nd target (1 - %d): ", mapWidth);
 	scanf("%d", &temp_inputy);
 	userInputTargetY2 = temp_inputy-1;
 
