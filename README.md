@@ -1,7 +1,7 @@
 # AI-Pathfinding-Implementation-in-C
 Implementations of Uniform Cost Search and A*-search Algorithms in C, for pathfinding on a two-dimensional array map.
 
-# Specifications
+# Specifications:
 
 We want to find an optimal path (if it exists) that a robot must follow to get from a starting position (S) to the nearest one of the two final states (T1 or T2). The coordinates of all S, T1, T2 are given by the user.
 
@@ -11,7 +11,8 @@ Obstacles are created in the map using a random variable. In the end, we want to
 
 The two pathfinding algorithms to be implemented are Uniform Cost Search (that searches the whole available map) and A*-search that uses a provided Heuristic function to make the search faster.
 
-# How to use
+# How to use:
+
 1. Compile the .c file with GCC.
 2. Open the a.out executable.
 3. Insert the size of the array/map, the coordinates of the Starting Point and the two targets.
