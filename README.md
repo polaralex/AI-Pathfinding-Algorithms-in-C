@@ -20,7 +20,7 @@ The two pathfinding algorithms to be implemented are Uniform Cost Search (that s
 # Uniform Cost Search
 ![Uniform Cost Search result on Terminal](http://i.imgur.com/xagCqrK.png)
 
-# A*-Search with Manhattan Distance Heuristic
-![A*-Pathfinding result on Terminal](http://i.imgur.com/xagCqrK.png)
+# A*-Search (with Manhattan Distance Heuristic)
+![A*-Pathfinding result on Terminal](http://i.imgur.com/hj653Ft.png)
 
 
