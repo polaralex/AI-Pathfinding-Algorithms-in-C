@@ -5,7 +5,7 @@ Implementations of Uniform Cost Search and A*-search Algorithms in C, for pathfi
 
 We want to find an optimal path (if it exists) that a robot must follow to get from a starting position (S) to the nearest one of the two final states (T1 or T2). The coordinates of all S, T1, T2 are given by the user.
 
-The robot can move either Horizontally (cost of movement: 1) or Vertically (cost of movement: 2) in a neighbooring free position.
+The robot can move either Horizontally (cost of movement: 1) or Vertically (cost of movement: 2) in a neighboring free position.
 
 Obstacles are created in the map using a random variable. In the end, we want to see the the optimal path.
 
